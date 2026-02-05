@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app.kubernetes.io/name: mysql-frontend
+  name: mysql-frontend
+  namespace: <your-namespace>
+spec:
+  rules:
+  - host: <final-url>
+    http:
+      paths:
+      - backend:
+          service:
+            name: mysql-frontend
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - <final-url>
+    secretName: <your-ssl-secret>

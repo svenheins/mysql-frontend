@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySQL Database Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --accent: #00ff88;
+            --accent-dim: #00cc6a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --error: #ff3366;
+            --border: #333333;
+            --shadow: rgba(0, 255, 136, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 255, 136, 0.03) 2px,
+                    rgba(0, 255, 136, 0.03) 4px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 90%;
+            position: relative;
+            z-index: 2;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            background: linear-gradient(135deg, var(--accent) 0%, #00ddff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .panel {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, var(--accent), #00ddff);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .panel:hover::before {
+            opacity: 0.1;
+        }
+
+        .panel-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .panel-title::before {
+            content: '▸';
+            font-size: 1.8rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+        }
+
+        input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            background: var(--accent-dim);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .alert-error {
+            background: rgba(255, 51, 102, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .db-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(750px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .db-card {
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .db-card::after {
+            content: '→';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--accent);
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .db-card:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .db-card:hover::after {
+            opacity: 1;
+            right: 0.5rem;
+        }
+
+        .db-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .db-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1.5rem;
+            border: 2px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: var(--bg-primary);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .status-bar {
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .record-count {
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+
+            .panel {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MySQL Database Manager</h1>
+        <p class="subtitle">Display and Export MySQL tables</p>
+
+        <!-- Login Panel -->
+        <div id="loginPanel" class="panel">
+            <h2 class="panel-title">Connect to Database</h2>
+            <div id="loginAlert"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="host">Host</label>
+                    <input type="text" id="host" value="mysql" placeholder="mysql or localhost">
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" value="username" placeholder="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" value="password1234" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn">Connect</button>
+            </form>
+        </div>
+
+        <!-- Database Selection Panel -->
+        <div id="databasePanel" class="panel hidden">
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Connected as <strong id="connectedUser"></strong></span>
+                </div>
+                <button class="btn btn-secondary" onclick="disconnect()" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Disconnect</button>
+            </div>
+            <h2 class="panel-title">Select Database</h2>
+            <div id="dbAlert"></div>
+            <div id="databaseList" class="db-selector"></div>
+        </div>
+
+        <!-- Users Table Panel -->
+        <div id="usersPanel" class="panel hidden">
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Database: <strong id="currentDatabase"></strong></span>
+                </div>
+                <span class="record-count" id="recordCount"></span>
+            </div>
+            <h2 class="panel-title">Users Table</h2>
+            <div id="usersAlert"></div>
+            <div class="button-group">
+                <button class="btn" onclick="downloadCSV()">Download as CSV</button>
+                <button class="btn btn-secondary" onclick="backToDatabases()">Back to Databases</button>
+            </div>
+            <div id="tableContainer" class="table-container"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentUsers = [];
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const host = document.getElementById('host').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            showAlert('loginAlert', 'Connecting...', 'success');
+
+            try {
+                const response = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ host, user: username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('connectedUser').textContent = username;
+                    document.getElementById('loginPanel').classList.add('hidden');
+                    document.getElementById('databasePanel').classList.remove('hidden');
+                    loadDatabases();
+                } else {
+                    showAlert('loginAlert', data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('loginAlert', 'Connection failed: ' + error.message, 'error');
+            }
+        });
+
+        // Load databases
+        async function loadDatabases() {
+            showAlert('dbAlert', 'Loading databases...', 'success');
+
+            try {
+                const response = await fetch('/api/databases');
+                const data = await response.json();
+
+                if (data.success) {
+                    const dbList = document.getElementById('databaseList');
+                    dbList.innerHTML = data.databases.map(db => `
+                        <div class="db-card" onclick="selectDatabase('${db}')">
+                            <div class="db-name">${db}</div>
+                            <div class="db-label">Database</div>
+                        </div>
+                    `).join('');
+                    document.getElementById('dbAlert').innerHTML = '';
+                } else {
+                    showAlert('dbAlert', data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('dbAlert', 'Failed to load databases: ' + error.message, 'error');
+            }
+        }
+
+        // Select database and load users
+        async function selectDatabase(database) {
+            document.getElementById('currentDatabase').textContent = database;
+            document.getElementById('databasePanel').classList.add('hidden');
+            document.getElementById('usersPanel').classList.remove('hidden');
+
+            showAlert('usersAlert', 'Loading users...', 'success');
+
+            try {
+                const response = await fetch(`/api/users/${database}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUsers = data.users;
+                    displayUsers(data.users);
+                    document.getElementById('recordCount').textContent = `${data.users.length} records`;
+                    document.getElementById('usersAlert').innerHTML = '';
+                } else {
+                    showAlert('usersAlert', data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('usersAlert', 'Failed to load users: ' + error.message, 'error');
+            }
+        }
+
+        // Display users in table
+        function displayUsers(users) {
+            if (users.length === 0) {
+                document.getElementById('tableContainer').innerHTML = '<p style="padding: 2rem; text-align: center; color: var(--text-secondary);">No users found</p>';
+                return;
+            }
+
+            const columns = Object.keys(users[0]);
+            const table = `
+                <table>
+                    <thead>
+                        <tr>
+                            ${columns.map(col => `<th>${col}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr>
+                                ${columns.map(col => `<td>${user[col] !== null ? user[col] : '<span style="color: var(--text-secondary);">NULL</span>'}</td>`).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('tableContainer').innerHTML = table;
+        }
+
+        // Download CSV
+        function downloadCSV() {
+            if (currentUsers.length === 0) {
+                showAlert('usersAlert', 'No data to download', 'error');
+                return;
+            }
+
+            const columns = Object.keys(currentUsers[0]);
+            const csv = [
+                columns.join(','),
+                ...currentUsers.map(user => 
+                    columns.map(col => {
+                        const value = user[col];
+                        if (value === null) return '';
+                        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+                            return `"${value.replace(/"/g, '""')}"`;
+                        }
+                        return value;
+                    }).join(',')
+                )
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `users_${document.getElementById('currentDatabase').textContent}_${new Date().getTime()}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showAlert('usersAlert', 'CSV downloaded successfully', 'success');
+            setTimeout(() => document.getElementById('usersAlert').innerHTML = '', 3000);
+        }
+
+        // Back to databases
+        function backToDatabases() {
+            document.getElementById('usersPanel').classList.add('hidden');
+            document.getElementById('databasePanel').classList.remove('hidden');
+            currentUsers = [];
+        }
+
+        // Disconnect
+        async function disconnect() {
+            try {
+                await fetch('/api/disconnect', { method: 'POST' });
+                document.getElementById('databasePanel').classList.add('hidden');
+                document.getElementById('loginPanel').classList.remove('hidden');
+                document.getElementById('loginAlert').innerHTML = '';
+                document.getElementById('password').value = '';
+            } catch (error) {
+                console.error('Disconnect error:', error);
+            }
+        }
+
+        // Show alert
+        function showAlert(elementId, message, type) {
+            const alertClass = type === 'error' ? 'alert-error' : 'alert-success';
+            document.getElementById(elementId).innerHTML = `
+                <div class="alert ${alertClass}">${message}</div>
+            `;
+        }
+    </script>
+</body>
+</html>
