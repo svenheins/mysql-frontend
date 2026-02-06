@@ -30,7 +30,7 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (username, email, full_name) VALUES
-    ('frank_ocean', 'frank@shop.com', 'Frank Ocean'),
+    ('frank_ocean', 'frank@shop.com\nanothermail@mail.com', 'Frank Ocean'),
     ('grace_hopper', 'grace@shop.com', 'Grace Hopper'),
     ('henry_ford', 'henry@shop.com', 'Henry Ford'),
     ('iris_west', 'iris@shop.com', 'Iris West'),
