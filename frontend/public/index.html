@@ -475,6 +475,22 @@
           padding: 0.75rem 0.5rem;
         }
       }
+
+      .truncate {
+        max-width: 250px; /* adjust column width */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+      }
+
+      .truncate:hover {
+        white-space: normal;
+        overflow: visible;
+        background: var(--bg-primary);
+        position: relative;
+        z-index: 5;
+      }
     </style>
   </head>
   <body>
@@ -685,11 +701,16 @@
                     <tbody>
                         ${users
                           .map(
-                            (user) => `
-                            <tr>
-                                ${columns.map((col) => `<td>${user[col] !== null ? user[col] : '<span style="color: var(--text-secondary);">NULL</span>'}</td>`).join("")}
-                            </tr>
-                        `,
+                            (user) =>
+                              `<tr> ${columns
+                                .map((col) => {
+                                  const value =
+                                    user[col] !== null
+                                      ? user[col]
+                                      : '<span style="color: var(--text-secondary);">NULL</span>';
+                                  return `<td class="truncate" title="${String(value).replace(/"/g, "&quot;")}">${value}</td>`;
+                                })
+                                .join("")} </tr>`,
                           )
                           .join("")}
                     </tbody>
